@@ -17,6 +17,9 @@ import argparse
 import config
 import socket
 
+FINAL_A = "01/14/2022"
+FINAL_B = "06/24/2022"
+
 
 # MAILING
 # def document_action(self, body, subject):
@@ -116,6 +119,7 @@ def schedule_request(time_stamp, course_number, semester, hall, date, time_begin
         return None
     recorder = recorder[0]
     folder_id = search(course_number, "2020-21", semester)
+    # FORMAT - MM/DD/YYYY
     # date = datetime.strptime(date, "%d/%m/%Y").strftime("%m-%d-%Y")  Depends on Date format
     start_date_str = f'{date} {time_beginning}'
     end_date_str = f'{date} {time_end}'
@@ -124,23 +128,33 @@ def schedule_request(time_stamp, course_number, semester, hall, date, time_begin
     datetime_end = parser.parse(end_date_str, dayfirst=True)
     start_time = config.ISRAEL.localize(datetime_start)
     end_time = config.ISRAEL.localize(datetime_end)
-    schedule(recorder, start_time, end_time, which_days, folder_id, course_number)
+    schedule(recorder, start_time, end_time, which_days, folder_id, course_number, semester, time_beginning, time_end)
 
 
-def schedule(recorder_server, start_date: datetime, end_date: datetime, which_days, folder_id, course_number):
+def schedule(recorder_server, start_date: datetime, end_date: datetime, which_days, folder_id, course_number, semester,
+             start, end):
     if which_days:
-        pass
-        # TODO
-        # self.start_dates = [start for start in rrule.rrule(rrule.WEEKLY, dtstart=start_date, until=self.final_date)]
-        # self.end_dates = [end for end in rrule.rrule(rrule.WEEKLY, dtstart=end_date, until=self.final_date)]
+        # pass
+        if semester == 'א':
+            end_start_A = f'{FINAL_A} {start}'
+            end_end_A = f'{FINAL_A} {end}'
+            datetime_start = parser.parse(end_start_A, dayfirst=True)
+            datetime_end = parser.parse(end_end_A, dayfirst=True)
+            start_time = config.ISRAEL.localize(datetime_start)
+            end_time = config.ISRAEL.localize(datetime_end)
+            start_dates = [start for start in rrule.rrule(rrule.WEEKLY, dtstart=start_date, until=start_time)]
+            end_dates = [end for end in rrule.rrule(rrule.WEEKLY, dtstart=end_date, until=end_time)]
+        # else:
+        #     start_dates = [start for start in rrule.rrule(rrule.WEEKLY, dtstart=start_date, until=FINAL_B)]
+        #     end_dates = [end for end in rrule.rrule(rrule.WEEKLY, dtstart=end_date, until=FINAL_B)]
     else:
         start_dates = [start_date]
         end_dates = [end_date]
 
     for start_date, end_date in zip(start_dates, end_dates):
         sr = {
-            "Name": str(course_number),
-            "Description": "בדיקה 2",
+            "Name": str(course_number)+" "+str(start_date)[:-9],
+            "Description": "",
             "StartTime": start_date.isoformat(),
             "EndTime": end_date.isoformat(),
             "FolderId": folder_id,
@@ -184,11 +198,11 @@ def main():
 
     # parse_argument() אילן הוסיף אבל לא צריך
     schedule_all()
-    schedule.every().minute.do(schedule_all)
-    schedule.every(1).hours.do(update_client)
-    schedule.every(1).hours.do(authorization, requests_session, oauth2)
-    while True:
-        schedule.run_pending()
+    # schedule.every().minute.do(schedule_all)
+    # schedule.every(1).hours.do(update_client)
+    # schedule.every(1).hours.do(authorization, requests_session, oauth2)
+    # while True:
+    #     schedule.run_pending()
 
 
 if __name__ == '__main__':
