@@ -28,36 +28,38 @@ CURRENT_YEAR = 2021
 
 
 # MAILING
-# def document_action(self, body, subject):
-#     if config.USER is not None and config.PASSWORD is not None:
-#         self.send_mail_and_meeting(subject, body)
-#     with open(config.LOG_FILE, 'w') as f:
-#         f.write(f'{subject}\n{body}\n\n')
-#         f.flush()
-#
-# def send_mail_and_meeting(self, subject, body):
-#     email_sender = config.USER
-#
-#     msg = MIMEMultipart()
-#     msg['From'] = email_sender
-#     msg['To'] = ", ".join(config.TO_SEND)
-#     msg['Subject'] = subject
-#
-#     msg.attach(MIMEText(f'{body}\n {str(self)}', 'plain'))
-#     try:
-#         server = smtplib.SMTP('smtp.office365.com', 587)
-#         server.ehlo()
-#         server.starttls()
-#         server.login(config.USER, config.PASSWORD)
-#         text = msg.as_string()
-#         server.sendmail(email_sender, config.TO_SEND, text)
-#         print('email sent')
-#         server.quit()
-#     except socket.error:
-#         print("SMPT server connection error")
-#     return True
-#
-# def delete_all(self):
+def document_action(body, subject):
+    if config.USER is not None and config.PASSWORD is not None:
+        send_mail_and_meeting(subject, body)
+    with open(config.LOG_FILE, 'w') as f:
+        f.write(f'{subject}\n{body}\n\n')
+        f.flush()
+
+
+def send_mail_and_meeting(subject, body):
+    email_sender = config.USER
+
+    msg = MIMEMultipart()
+    msg['From'] = email_sender
+    msg['To'] = ", ".join(config.TO_SEND)
+    msg['Subject'] = subject
+
+    msg.attach(MIMEText(f'{body}\n ', 'plain'))
+    try:
+        server = smtplib.SMTP('smtp.office365.com', 587)
+        server.ehlo()
+        server.starttls()
+        server.login(config.USER, config.PASSWORD)
+        text = msg.as_string()
+        server.sendmail(email_sender, config.TO_SEND, text)
+        print('email sent')
+        server.quit()
+    except socket.error:
+        print("SMPT server connection error")
+    return True
+
+
+# def delete_all():
 #     for session_id in self.sessions_id:
 #         url = config.BASE_URL + "scheduledRecordings/{0}".format(session_id)
 #         print('Calling DELETE {0}'.format(url))
@@ -161,7 +163,7 @@ def schedule(recorder_server, start_date_time, end_date_time, does_repeat, folde
     else:
         start_dates = [start_date_time]
         end_dates = [end_date_time]
-
+    resp_list = []
     for start_date, end_date in zip(start_dates, end_dates):
         sr = {
             "Name": str(course_number) + " " + str(start_date)[:-9],
@@ -184,8 +186,15 @@ def schedule(recorder_server, start_date_time, end_date_time, does_repeat, folde
         print("POST returned:\n" + json.dumps(create_resp, indent=2))
         if 'Id' not in create_resp:
             print('CANT SCHEDULE')
+            send_mail_and_meeting("Problem with schedule", create_resp)
             return
+        resp_list.append(create_resp)
     print("SUCCESS")
+    email_body = ""
+    for res in resp_list:
+        email_body += res['Name'] + " Live broadcast: https://huji.cloud.panopto.eu/Panopto/Pages/Viewer.aspx?id=" + \
+                      res["Id"] + "\n\n"
+    send_mail_and_meeting("Success on schedule", email_body)
     return
 
 
@@ -261,7 +270,6 @@ def main():
     authorization(requests_session, oauth2)
     # Load Folders API logic
     folders = PanoptoFolders(config.PANOPTO_SERVER_NAME, False, oauth2)
-
     schedule_all()
     # schedule.every().minute.do(schedule_all)
     # schedule.every(1).hours.do(update_client)
