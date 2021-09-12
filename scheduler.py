@@ -13,9 +13,11 @@ import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 import schedule
-import argparse
 import config
 import socket
+import win32com.client
+
+outlook = win32com.client.Dispatch("Outlook.Application")
 
 PRE_WINTER_TIME = "10/31/2021"
 IN_WINTER = "11/01/2021"
@@ -28,15 +30,7 @@ CURRENT_YEAR = 2021
 
 
 # MAILING
-def document_action(body, subject):
-    if config.USER is not None and config.PASSWORD is not None:
-        send_mail_and_meeting(subject, body)
-    with open(config.LOG_FILE, 'w') as f:
-        f.write(f'{subject}\n{body}\n\n')
-        f.flush()
-
-
-def send_mail_and_meeting(subject, body):
+def send_mail_and_meeting(subject, body, list_of_recordings):
     email_sender = config.USER
 
     msg = MIMEMultipart()
@@ -57,6 +51,19 @@ def send_mail_and_meeting(subject, body):
     except socket.error:
         print("SMPT server connection error")
     return True
+
+
+def sendMeeting(resp):
+    appt = outlook.CreateItem(1)  # AppointmentItem
+    appt.Start = resp['StartTime']  # yyyy-MM-dd hh:mm
+    appt.Subject = resp['Name']
+    appt.Duration = 15  # In minutes (60 Minutes)
+    appt.Location = ""
+    appt.MeetingStatus = 1  # 1 - olMeeting; Changing the appointment to meeting. Only after changing the meeting status recipients can be added
+
+    # appt.Recipients.Add("test@test.com")  # Don't end ; as delimiter
+    appt.Save()
+    appt.Send()
 
 
 # def delete_all():
@@ -194,7 +201,8 @@ def schedule(recorder_server, start_date_time, end_date_time, does_repeat, folde
     for res in resp_list:
         email_body += res['Name'] + " Live broadcast: https://huji.cloud.panopto.eu/Panopto/Pages/Viewer.aspx?id=" + \
                       res["Id"] + "\n\n"
-    send_mail_and_meeting("Success on schedule", email_body)
+        sendMeeting(res)
+    send_mail_and_meeting("Success on schedule", email_body, resp_list)
     return
 
 
