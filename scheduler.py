@@ -142,16 +142,17 @@ def schedule_request(course_number, semester, hall, date, time_beginning, time_e
 def schedule(recorder_server, start_date_time, end_date_time, does_repeat, folder_id, course_number, semester, start,
              end):
     if does_repeat:
-        if semester == 'א':  # in winter "11/01/2021"
-            if start_date_time > config.ISRAEL.localize(datetime(year=CURRENT_YEAR, month=1, day=11)):
+        if semester == 'א':
+            if (int(start_date_time.month) > 1 or ((int(start_date_time.month) == 1) and (
+                    int(start_date_time.day) >= 11))):  # in winter "11/01/2021"
                 end_dates, start_dates = time_dif(end, end_date_time, start, start_date_time, PRE_WINTER_TIME,
                                                   IN_WINTER,
                                                   END_OF_SEMESTER_A)
             else:
                 start_dates, end_dates = regular_schedule(end, end_date_time, start, start_date_time, END_OF_SEMESTER_A)
         else:  # SEMESTER B
-            if start_date_time < config.ISRAEL.localize(
-                    datetime(year=(CURRENT_YEAR + 1), month=3, day=25)):  # in summer "03/25/2022"
+            if (int(start_date_time.month) > 3 or ((int(start_date_time.month) == 3) and (
+                    int(start_date_time.day) >= 25))):  # in summer "03/25/2022"
                 end_dates, start_dates = time_dif(end, end_date_time, start, start_date_time, PRE_SUMMER_TIME,
                                                   IN_SUMMER,
                                                   END_OF_SEMESTER_B)
