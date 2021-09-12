@@ -23,6 +23,8 @@ END_OF_SEMESTER_A = "01/14/2022"
 PRE_SUMMER_TIME = "03/24/2022"
 IN_SUMMER = "03/25/2022"
 END_OF_SEMESTER_B = "06/24/2022"
+CURRENT_YEAR_OF_FOLDERS = "2020-21"
+CURRENT_YEAR = 2021
 
 
 # MAILING
@@ -106,13 +108,13 @@ def schedule_all():
     data.rename(columns=config.COLUMN_NAMES, inplace=True)
     for tuple_row in data.iterrows():
         time_stamp, course_number, semester, hall, date, time_beginning, time_end, does_repeat = tuple_row[1]
-        schedule_request(time_stamp, course_number, semester, hall, date, time_beginning, time_end,
+        schedule_request(course_number, semester, hall, date, time_beginning, time_end,
                          does_repeat == "כן")
     sheet.delete_rows(2, data.shape[0] + 1)
     return
 
 
-def schedule_request(time_stamp, course_number, semester, hall, date, time_beginning, time_end, does_repeat):
+def schedule_request(course_number, semester, hall, date, time_beginning, time_end, does_repeat):
     recorder = config.SERVERS[hall]
     url = config.BASE_URL + "remoteRecorders/search?searchQuery={0}".format(quote(recorder))
     print('Calling GET {0}'.format(url))
@@ -122,9 +124,11 @@ def schedule_request(time_stamp, course_number, semester, hall, date, time_begin
         print("Recorder not found:\n{0}".format(resp))
         return None
     recorder = recorder[0]
-    folder_id = search(course_number, "2020-21", semester)
+    folder_id = search(course_number, CURRENT_YEAR_OF_FOLDERS, semester)
+
     # FORMAT - MM/DD/YYYY
     # date = datetime.strptime(date, "%d/%m/%Y").strftime("%m-%d-%Y")  Depends on Date format
+
     start_date_str = f'{date} {time_beginning}'
     end_date_str = f'{date} {time_end}'
 
@@ -138,12 +142,21 @@ def schedule_request(time_stamp, course_number, semester, hall, date, time_begin
 def schedule(recorder_server, start_date_time, end_date_time, does_repeat, folder_id, course_number, semester, start,
              end):
     if does_repeat:
-        if semester == 'א':
-            end_dates, start_dates = time_dif(end, end_date_time, start, start_date_time, PRE_WINTER_TIME, IN_WINTER,
-                                              END_OF_SEMESTER_A)
+        if semester == 'א':  # in winter "11/01/2021"
+            if start_date_time > config.ISRAEL.localize(datetime(year=CURRENT_YEAR, month=1, day=11)):
+                end_dates, start_dates = time_dif(end, end_date_time, start, start_date_time, PRE_WINTER_TIME,
+                                                  IN_WINTER,
+                                                  END_OF_SEMESTER_A)
+            else:
+                start_dates, end_dates = regular_schedule(end, end_date_time, start, start_date_time, END_OF_SEMESTER_A)
         else:  # SEMESTER B
-            end_dates, start_dates = time_dif(end, end_date_time, start, start_date_time, PRE_SUMMER_TIME, IN_SUMMER,
-                                              END_OF_SEMESTER_B)
+            if start_date_time < config.ISRAEL.localize(
+                    datetime(year=(CURRENT_YEAR + 1), month=3, day=25)):  # in summer "03/25/2022"
+                end_dates, start_dates = time_dif(end, end_date_time, start, start_date_time, PRE_SUMMER_TIME,
+                                                  IN_SUMMER,
+                                                  END_OF_SEMESTER_B)
+            else:
+                start_dates, end_dates = regular_schedule(end, end_date_time, start, start_date_time, END_OF_SEMESTER_B)
     else:
         start_dates = [start_date_time]
         end_dates = [end_date_time]
@@ -215,6 +228,21 @@ def time_dif(end, end_date_time, start, start_date_time, pre_time_dif, in_time_d
     return end_dates, start_dates
 
 
+def regular_schedule(end, end_date_time, start, start_date_time, end_of_semester):
+    pre_time_format_start = f'{end_of_semester} {start}'
+    pre_time_format_end = f'{end_of_semester} {end}'
+    pre_time_format_start = parser.parse(pre_time_format_start)
+    pre_time_format_end = parser.parse(pre_time_format_end)
+    pre_time_format_start = config.ISRAEL.localize(pre_time_format_start)
+    pre_time_format_end = config.ISRAEL.localize(pre_time_format_end)
+    # PRE_TIME_DIF #####################################################################
+    start_dates = [start for start in rrule.rrule(rrule.WEEKLY, dtstart=start_date_time,
+                                                  until=pre_time_format_start)]
+    end_dates = [end for end in rrule.rrule(rrule.WEEKLY, dtstart=end_date_time,
+                                            until=pre_time_format_end)]
+    return start_dates, end_dates
+
+
 def main():
     global folders, client, creds, requests_session
     # use creds to create a client to interact with the Google Drive API
@@ -233,7 +261,6 @@ def main():
     # Load Folders API logic
     folders = PanoptoFolders(config.PANOPTO_SERVER_NAME, False, oauth2)
 
-    # parse_argument() אילן הוסיף אבל לא צריך
     schedule_all()
     # schedule.every().minute.do(schedule_all)
     # schedule.every(1).hours.do(update_client)
