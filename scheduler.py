@@ -17,12 +17,12 @@ import argparse
 import config
 import socket
 
-FINAL_A_WINTER = "10/31/2021"
+PRE_WINTER_TIME = "10/31/2021"
 IN_WINTER = "11/01/2021"
-FINAL_A = "01/14/2022"
-FINAL_B_SUMMER = "03/24/2022"
+END_OF_SEMESTER_A = "01/14/2022"
+PRE_SUMMER_TIME = "03/24/2022"
 IN_SUMMER = "03/25/2022"
-FINAL_B = "06/24/2022"
+END_OF_SEMESTER_B = "06/24/2022"
 
 
 # MAILING
@@ -139,11 +139,11 @@ def schedule(recorder_server, start_date_time, end_date_time, does_repeat, folde
              end):
     if does_repeat:
         if semester == 'א':
-            end_dates, start_dates = time_dif(end, end_date_time, start, start_date_time, FINAL_A_WINTER, IN_WINTER,
-                                              FINAL_A)
+            end_dates, start_dates = time_dif(end, end_date_time, start, start_date_time, PRE_WINTER_TIME, IN_WINTER,
+                                              END_OF_SEMESTER_A)
         else:  # SEMESTER B
-            end_dates, start_dates = time_dif(end, end_date_time, start, start_date_time, FINAL_B_SUMMER, IN_SUMMER,
-                                              FINAL_B)
+            end_dates, start_dates = time_dif(end, end_date_time, start, start_date_time, PRE_SUMMER_TIME, IN_SUMMER,
+                                              END_OF_SEMESTER_B)
     else:
         start_dates = [start_date_time]
         end_dates = [end_date_time]
@@ -209,6 +209,7 @@ def time_dif(end, end_date_time, start, start_date_time, pre_time_dif, in_time_d
                                                           until=in_time_format_start)]
     end_dates_in_time = [end for end in rrule.rrule(rrule.WEEKLY, dtstart=in_time_parsed_end,
                                                     until=in_time_format_end)]
+    # JOINING ##########################################################
     start_dates = start_dates + start_dates_in_time
     end_dates = end_dates + end_dates_in_time
     return end_dates, start_dates
