@@ -15,9 +15,6 @@ from email.mime.multipart import MIMEMultipart
 import schedule
 import config
 import socket
-import win32com.client
-
-outlook = win32com.client.Dispatch("Outlook.Application")
 
 PRE_WINTER_TIME = "10/31/2021"
 IN_WINTER = "11/01/2021"
@@ -30,7 +27,7 @@ CURRENT_YEAR = 2021
 
 
 # MAILING
-def send_mail_and_meeting(subject, body, list_of_recordings):
+def send_mail_and_meeting(subject, body):
     email_sender = config.USER
 
     msg = MIMEMultipart()
@@ -53,17 +50,17 @@ def send_mail_and_meeting(subject, body, list_of_recordings):
     return True
 
 
-def sendMeeting(resp):
-    appt = outlook.CreateItem(1)  # AppointmentItem
-    appt.Start = resp['StartTime']  # yyyy-MM-dd hh:mm
-    appt.Subject = resp['Name']
-    appt.Duration = 15  # In minutes (60 Minutes)
-    appt.Location = ""
-    appt.MeetingStatus = 1  # 1 - olMeeting; Changing the appointment to meeting. Only after changing the meeting status recipients can be added
-
-    # appt.Recipients.Add("test@test.com")  # Don't end ; as delimiter
-    appt.Save()
-    appt.Send()
+# def sendMeeting(resp):
+#     appt = outlook.CreateItem(1)  # AppointmentItem
+#     appt.Start = resp['StartTime']  # yyyy-MM-dd hh:mm
+#     appt.Subject = resp['Name']
+#     appt.Duration = 15  # In minutes (60 Minutes)
+#     appt.Location = ""
+#     appt.MeetingStatus = 1  # 1 - olMeeting; Changing the appointment to meeting. Only after changing the meeting status recipients can be added
+#
+#     # appt.Recipients.Add("test@test.com")  # Don't end ; as delimiter
+#     appt.Save()
+#     appt.Send()
 
 
 # def delete_all():
@@ -145,11 +142,13 @@ def schedule_request(course_number, semester, hall, date, time_beginning, time_e
     datetime_end = parser.parse(end_date_str, dayfirst=False)
     start_time = config.ISRAEL.localize(datetime_start)
     end_time = config.ISRAEL.localize(datetime_end)
-    schedule(recorder, start_time, end_time, does_repeat, folder_id, course_number, semester, time_beginning, time_end)
+    schedule_to_panopto(recorder, start_time, end_time, does_repeat, folder_id, course_number, semester, time_beginning,
+                        time_end)
 
 
-def schedule(recorder_server, start_date_time, end_date_time, does_repeat, folder_id, course_number, semester, start,
-             end):
+def schedule_to_panopto(recorder_server, start_date_time, end_date_time, does_repeat, folder_id, course_number,
+                        semester, start,
+                        end):
     if does_repeat:
         if semester == 'א':
             if (int(start_date_time.month) > 1 or ((int(start_date_time.month) == 1) and (
@@ -201,8 +200,7 @@ def schedule(recorder_server, start_date_time, end_date_time, does_repeat, folde
     for res in resp_list:
         email_body += res['Name'] + " Live broadcast: https://huji.cloud.panopto.eu/Panopto/Pages/Viewer.aspx?id=" + \
                       res["Id"] + "\n\n"
-        sendMeeting(res)
-    send_mail_and_meeting("Success on schedule", email_body, resp_list)
+    send_mail_and_meeting("Success on schedule", email_body)
     return
 
 
@@ -279,11 +277,16 @@ def main():
     # Load Folders API logic
     folders = PanoptoFolders(config.PANOPTO_SERVER_NAME, False, oauth2)
     schedule_all()
-    # schedule.every().minute.do(schedule_all)
-    # schedule.every(1).hours.do(update_client)
-    # schedule.every(1).hours.do(authorization, requests_session, oauth2)
-    # while True:
-    #     schedule.run_pending()
+    schedule.every(5).seconds.do(schedule_all)
+    schedule.every(1).hours.do(update_client)
+    schedule.every(1).hours.do(authorization, requests_session, oauth2)
+    schedule.every(5).seconds.do(while_waiting)
+    while True:
+        schedule.run_pending()
+
+
+def while_waiting():
+    print("Waiting for requests...")
 
 
 if __name__ == '__main__':
