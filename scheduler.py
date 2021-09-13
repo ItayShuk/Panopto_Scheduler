@@ -153,7 +153,7 @@ def schedule_to_panopto(recorder_server, start_date_time, end_date_time, does_re
         if semester == 'א':
             if (int(start_date_time.month) > 1 or ((int(start_date_time.month) == 1) and (
                     int(start_date_time.day) >= 11))):  # in winter "11/01/2021"
-                end_dates, start_dates = time_dif(end, end_date_time, start, start_date_time, PRE_WINTER_TIME,
+                start_dates, end_dates = time_dif(end, end_date_time, start, start_date_time, PRE_WINTER_TIME,
                                                   IN_WINTER,
                                                   END_OF_SEMESTER_A)
             else:
@@ -161,7 +161,7 @@ def schedule_to_panopto(recorder_server, start_date_time, end_date_time, does_re
         else:  # SEMESTER B
             if (int(start_date_time.month) > 3 or ((int(start_date_time.month) == 3) and (
                     int(start_date_time.day) >= 25))):  # in summer "03/25/2022"
-                end_dates, start_dates = time_dif(end, end_date_time, start, start_date_time, PRE_SUMMER_TIME,
+                start_dates, end_dates = time_dif(end, end_date_time, start, start_date_time, PRE_SUMMER_TIME,
                                                   IN_SUMMER,
                                                   END_OF_SEMESTER_B)
             else:
@@ -241,7 +241,7 @@ def time_dif(end, end_date_time, start, start_date_time, pre_time_dif, in_time_d
     # JOINING ##########################################################
     start_dates = start_dates + start_dates_in_time
     end_dates = end_dates + end_dates_in_time
-    return end_dates, start_dates
+    return start_dates, end_dates
 
 
 def regular_schedule(end, end_date_time, start, start_date_time, end_of_semester):
