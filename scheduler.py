@@ -84,7 +84,7 @@ def search(course_id, year, semester):
     elif semester == 'ב':
         semester = "Semester 2"
     else:
-        semester = "Semester 3"
+        semester = "Summer"
 
     results = folders.search_folders(rf'{course_id}')
     id = None
