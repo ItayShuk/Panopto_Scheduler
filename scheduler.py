@@ -200,7 +200,7 @@ def schedule_to_panopto(recorder_server, start_date_time, end_date_time, does_re
     for res in resp_list:
         email_body += res['Name'] + " Live broadcast: https://huji.cloud.panopto.eu/Panopto/Pages/Viewer.aspx?id=" + \
                       res["Id"] + "\n\n"
-    send_mail_and_meeting("Success on schedule", email_body)
+    # send_mail_and_meeting("Success on schedule", email_body) ENABLE FOR MAIL RESPONSE
     return
 
 
