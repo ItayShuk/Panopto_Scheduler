@@ -25,6 +25,9 @@ END_OF_SEMESTER_B = "06/24/2022"
 CURRENT_YEAR_OF_FOLDERS = "2021-22"
 CURRENT_YEAR = 2021
 
+# python to EXE:
+# https://towardsdatascience.com/how-to-easily-convert-a-python-script-to-an-executable-file-exe-4966e253c7e9
+
 
 # MAILING
 def send_mail_and_meeting(subject, body):
