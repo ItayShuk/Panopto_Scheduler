@@ -15,6 +15,9 @@ from email.mime.multipart import MIMEMultipart
 import schedule
 import config
 import socket
+import win32com.client
+
+outlook = win32com.client.Dispatch("Outlook.Application")
 
 PRE_WINTER_TIME = "10/31/2021"
 IN_WINTER = "11/01/2021"
@@ -24,6 +27,7 @@ IN_SUMMER = "03/25/2022"
 END_OF_SEMESTER_B = "06/24/2022"
 CURRENT_YEAR_OF_FOLDERS = "2021-22"
 CURRENT_YEAR = 2021
+
 
 # python to EXE:
 # https://towardsdatascience.com/how-to-easily-convert-a-python-script-to-an-executable-file-exe-4966e253c7e9
@@ -53,17 +57,18 @@ def send_mail_and_meeting(subject, body):
     return True
 
 
-# def sendMeeting(resp):
-#     appt = outlook.CreateItem(1)  # AppointmentItem
-#     appt.Start = resp['StartTime']  # yyyy-MM-dd hh:mm
-#     appt.Subject = resp['Name']
-#     appt.Duration = 15  # In minutes (60 Minutes)
-#     appt.Location = ""
-#     appt.MeetingStatus = 1  # 1 - olMeeting; Changing the appointment to meeting. Only after changing the meeting status recipients can be added
-#
-#     # appt.Recipients.Add("test@test.com")  # Don't end ; as delimiter
-#     appt.Save()
-#     appt.Send()
+def sendMeeting(date, name):
+    appt = outlook.CreateItem(1)  # AppointmentItem
+    appt.Start = date  # yyyy-MM-dd hh:mm
+    appt.Subject = name
+    appt.Duration = 60  # In minutes (60 Minutes)
+    appt.Location = name
+    appt.MeetingStatus = 1  # 1 - olMeeting; Changing the appointment to meeting. Only after changing the meeting status recipients can be added
+
+    # appt.Recipients.Add("amiranb@savion.huji.ac.il")  # Amiran doesnt need meetings
+
+    appt.Save()
+    appt.Send()
 
 
 # def delete_all():
@@ -191,19 +196,24 @@ def schedule_to_panopto(recorder_server, start_date_time, end_date_time, does_re
         }
         url = config.BASE_URL + "scheduledRecordings?resolveConflicts=false"
         print('Calling POST {0}'.format(url))
+
         create_resp = requests_session.post(url=url, json=sr).json()
         print("POST returned:\n" + json.dumps(create_resp, indent=2))
         if 'Id' not in create_resp:
             print('CANT SCHEDULE')
-            send_mail_and_meeting("Problem with schedule", create_resp)
+            # ENABLE FOR MAIL RESPONSE
+            # send_mail_and_meeting("Problem with schedule", create_resp)
             return
+        date = start_date.isoformat()[0:10] + " " + start_date.isoformat()[11:16]
+        sendMeeting(date, str(recorder_server["Name"]) + " " + str(course_number) + " " + str(start_date)[:-9])
         resp_list.append(create_resp)
     print("SUCCESS")
     email_body = ""
     for res in resp_list:
         email_body += res['Name'] + " Live broadcast: https://huji.cloud.panopto.eu/Panopto/Pages/Viewer.aspx?id=" + \
                       res["Id"] + "\n\n"
-    # send_mail_and_meeting("Success on schedule", email_body) ENABLE FOR MAIL RESPONSE
+    # ENABLE FOR MAIL RESPONSE
+    # send_mail_and_meeting("Success on schedule", email_body)
     return
 
 
