@@ -82,6 +82,9 @@ def authorization(requests_session, oauth2):
 
 
 def search(course_id, year, semester):
+    """
+    Searching for course folder path using year and semester
+    """
     if semester == 'א':
         semester = "Semester 1"
     elif semester == 'ב':
@@ -106,9 +109,10 @@ def update_client():
     client = gspread.authorize(creds)
 
 
-# Find a workbook by name and open the first sheet
-# Make sure you use the right name here.
 def schedule_all():
+    """
+    Open Recording sheet, iterating on recordings
+    """
     sheet = client.open("Recordings").sheet1
     data = pd.DataFrame(sheet.get_all_records())
     # sheet.delete_rows(2, data.shape[0] + 1)
@@ -124,6 +128,10 @@ def schedule_all():
 
 
 def schedule_request(course_number, semester, hall, date, time_beginning, time_end, does_repeat):
+    """
+    Preparing request, parsing date and recorder, finding folder
+    passing it to schedule_to_panopto
+    """
     recorder = config.SERVERS[hall]
     url = config.BASE_URL + "remoteRecorders/search?searchQuery={0}".format(quote(recorder))
     print('Calling GET {0}'.format(url))
@@ -152,6 +160,11 @@ def schedule_request(course_number, semester, hall, date, time_beginning, time_e
 def schedule_to_panopto(recorder_server, start_date_time, end_date_time, does_repeat, folder_id, course_number,
                         semester, start,
                         end):
+    """
+    Schedule to Panopto, response in mail containing link to recording and setting up meeting when success,
+    when fail response in error mail,
+    delete the recording request either way
+    """
     if does_repeat:
         if semester == 'א':
             if (int(start_date_time.month) > 1 or ((int(start_date_time.month) == 1) and (
@@ -213,6 +226,9 @@ def schedule_to_panopto(recorder_server, start_date_time, end_date_time, does_re
 
 
 def time_dif(end, end_date_time, start, start_date_time, pre_time_dif, in_time_dif, end_of_semester):
+    """
+    Due to winter and summer clocks
+    """
     pre_time_format_start = f'{pre_time_dif} {start}'
     pre_time_format_end = f'{pre_time_dif} {end}'
     pre_time_format_start = parser.parse(pre_time_format_start)
@@ -253,6 +269,9 @@ def time_dif(end, end_date_time, start, start_date_time, pre_time_dif, in_time_d
 
 
 def regular_schedule(end, end_date_time, start, start_date_time, end_of_semester):
+    """
+    If no winter/summer clocks involve
+    """
     pre_time_format_start = f'{end_of_semester} {start}'
     pre_time_format_end = f'{end_of_semester} {end}'
     pre_time_format_start = parser.parse(pre_time_format_start)
