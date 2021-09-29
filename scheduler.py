@@ -33,8 +33,10 @@ CURRENT_YEAR = 2021
 # https://towardsdatascience.com/how-to-easily-convert-a-python-script-to-an-executable-file-exe-4966e253c7e9
 
 
-# MAILING
-def send_mail_and_meeting(subject, body):
+def send_mail(subject, body):
+    """
+    Mailing done by Outlook web
+    """
     email_sender = config.USER
 
     msg = MIMEMultipart()
@@ -57,7 +59,10 @@ def send_mail_and_meeting(subject, body):
     return True
 
 
-def sendMeeting(date, name):
+def appoint_meeting(date, name):
+    """
+    Meeting done by Outlook client on PC
+    """
     appt = outlook.CreateItem(1)  # AppointmentItem
     appt.Start = date  # yyyy-MM-dd hh:mm
     appt.Subject = name
@@ -65,18 +70,8 @@ def sendMeeting(date, name):
     appt.Location = name
     appt.MeetingStatus = 1  # 1 - olMeeting; Changing the appointment to meeting. Only after changing the meeting status recipients can be added
 
-    # appt.Recipients.Add("amiranb@savion.huji.ac.il")  # Amiran doesnt need meetings
-
     appt.Save()
     appt.Send()
-
-
-# def delete_all():
-#     for session_id in self.sessions_id:
-#         url = config.BASE_URL + "scheduledRecordings/{0}".format(session_id)
-#         print('Calling DELETE {0}'.format(url))
-#         read_resp = requests_session.delete(url=url).json()
-#         print("DELETE returned:\n" + json.dumps(read_resp, indent=2))
 
 
 def authorization(requests_session, oauth2):
@@ -205,7 +200,7 @@ def schedule_to_panopto(recorder_server, start_date_time, end_date_time, does_re
             # send_mail_and_meeting("Problem with schedule", create_resp)
             return
         date = start_date.isoformat()[0:10] + " " + start_date.isoformat()[11:16]
-        sendMeeting(date, str(recorder_server["Name"]) + " " + str(course_number) + " " + str(start_date)[:-9])
+        appoint_meeting(date, str(recorder_server["Name"]) + " " + str(course_number) + " " + str(start_date)[:-9])
         resp_list.append(create_resp)
     print("SUCCESS")
     email_body = ""
