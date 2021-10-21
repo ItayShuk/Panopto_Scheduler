@@ -2,17 +2,10 @@
 ## About The Project
 Improvement for ILAN schedule - https://github.com/ilanerukh/Panopto-Scheduler
 
-The Panopto UI is not really good with scheduling recordings, so this program was built to help with that.
+Schedule recording using Google form which connected to Google Project, while filling: course id, year, semester, hall, name of the lecture and whether it is repetetive lecture to the google form, the program will automatically schedule your request.
+At the end of the process, the schedule will send you an email with recording details,
+If the scheduling failed for some reason, it will respond with error mail.
 
-There is a Google form, which you can state course id, year, semester, hall, name of the lecture and if it is repetetive lecture. Once filled, the program will automatically collect your answer, and schedule upon your request.
-
-It will search the correct folder in the Panopto folder structure, will add full date at its name, and schedule to panopto.
-
-At the end of the process, the schedule will be logged in a log file, and it will send you an email with all the details about the recording.
-
-If the scheduling was failed for some reason (for instance there is already a class in the hall in the same time), it will send an email with the reason it failed.
-
-When choosing that the class is repetitive, it will schedule every week until the semester ends.
 
 <!-- GETTING STARTED -->
 ## Getting Started
