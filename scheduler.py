@@ -94,13 +94,18 @@ def search(course_id, year, semester):
 
     results = folders.search_folders(rf'{course_id}')
     id = None
+    id_list = []
     for result in results:
         if str(year) in result['Name']:
             if result['ParentFolder']['Name'] == f'{year} -> {semester}' or \
                     result['ParentFolder']['Name'] == f'{year} -> Semester 1 or 2' or \
                     result['ParentFolder']['Name'] == f'{year} -> Semesters 1 or 2' or \
                     result['ParentFolder']['Name'] == f'{year} -> Non-shnaton':
+                id_list.append(result['Id'])
+            if result['ParentFolder']['Name'] == f'{year} -> {semester}':
                 return result['Id']
+    if len(id_list) != 0:
+        return id_list[0]
     return id
 
 
@@ -197,7 +202,7 @@ def schedule_to_panopto(recorder_server, start_date_time, end_date_time, does_re
                 {
                     'RemoteRecorderId': recorder_server['Id'],
                     'SuppressPrimary': False,
-                    'SuppressSecondary': True,
+                    'SuppressSecondary': False,
                 }
             ],
             'IsBroadcast': True,
@@ -210,7 +215,7 @@ def schedule_to_panopto(recorder_server, start_date_time, end_date_time, does_re
         if 'Id' not in create_resp:
             print('CANT SCHEDULE')
             # ENABLE FOR MAIL RESPONSE
-            # send_mail_and_meeting("Problem with schedule", create_resp)
+            send_mail("Problem with schedule", create_resp)
             return
         date = start_date.isoformat()[0:10] + " " + start_date.isoformat()[11:16]
         appoint_meeting(date, str(recorder_server["Name"]) + " " + str(course_number) + " " + str(start_date)[:-9])
@@ -221,7 +226,7 @@ def schedule_to_panopto(recorder_server, start_date_time, end_date_time, does_re
         email_body += res['Name'] + " Live broadcast: https://huji.cloud.panopto.eu/Panopto/Pages/Viewer.aspx?id=" + \
                       res["Id"] + "\n\n"
     # ENABLE FOR MAIL RESPONSE
-    # send_mail_and_meeting("Success on schedule", email_body)
+    send_mail("Success on schedule", email_body)
     return
 
 
