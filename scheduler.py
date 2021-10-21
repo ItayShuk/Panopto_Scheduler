@@ -97,13 +97,12 @@ def search(course_id, year, semester):
     id_list = []
     for result in results:
         if str(year) in result['Name']:
-            if result['ParentFolder']['Name'] == f'{year} -> {semester}' or \
-                    result['ParentFolder']['Name'] == f'{year} -> Semester 1 or 2' or \
+            if result['ParentFolder']['Name'] == f'{year} -> {semester}':
+                return result['Id']
+            elif result['ParentFolder']['Name'] == f'{year} -> Semester 1 or 2' or \
                     result['ParentFolder']['Name'] == f'{year} -> Semesters 1 or 2' or \
                     result['ParentFolder']['Name'] == f'{year} -> Non-shnaton':
                 id_list.append(result['Id'])
-            if result['ParentFolder']['Name'] == f'{year} -> {semester}':
-                return result['Id']
     if len(id_list) != 0:
         return id_list[0]
     return id
