@@ -2,7 +2,7 @@
 ## About The Project
 Improvement for ILAN schedule - https://github.com/ilanerukh/Panopto-Scheduler
 
-Schedule recording using Google form which connected to Google Project, while filling: course id, year, semester, hall, name of the lecture and whether it is repetetive lecture to the google form, the program will automatically schedule your request.
+Schedule recording using PANOPTO API and Google form which connected to Google Project, while filling: course id, year, semester, hall, name of the lecture and whether it is repetetive lecture to the google form, the program will automatically schedule your request.
 At the end of the process, the schedule will send you an email with recording details,
 If the scheduling failed for some reason, it will respond with error mail.
 
